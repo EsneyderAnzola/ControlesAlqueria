@@ -1258,7 +1258,7 @@ function rGPS(gD,lD){
   }).join("");
 }
 
-// ── LOGS (CORREGIDO - AHORA MUESTRA LA HORA CORRECTAMENTE) ──
+// ── LOGS (VERSIÓN FINAL - PARSEA FECHAS LOCALES CORRECTAMENTE) ──
 function rLogs(logs){
   document.getElementById("logCnt").textContent=logs.length;
   if(!logs.length){document.getElementById("logBody").innerHTML='<tr><td colspan="7"><div class="empty"><p>Sin registros de check-in</p></div></td></tr>';return;}
@@ -1270,22 +1270,87 @@ function rLogs(logs){
       gps='<a href="'+url+'" target="_blank" style="color:var(--ruby);font-size:.64rem;font-weight:600;text-decoration:none;white-space:nowrap">📍 '+l.lat.toFixed(4)+','+l.lng.toFixed(4)+'</a>';
     }
     
-    // Obtener la hora de registro (prioridad: regISO, fechaISO, o formatear fecha)
-    var horaReg = "—";
-    if(l.regISO) {
-      horaReg = fmtT(l.regISO);
-    } else if(l.fechaISO) {
-      horaReg = fmtT(l.fechaISO);
-    } else if(l.fecha) {
-      // Intentar con la fecha si no hay ISO
+    // --- FUNCIÓN PARA PARSEAR FECHAS LOCALES ---
+    function parseFechaLocal(fechaStr) {
+      if (!fechaStr) return null;
       try {
-        var d = new Date(l.fecha + "T12:00:00");
-        horaReg = d.toLocaleTimeString("es-CO", {hour:"2-digit", minute:"2-digit"});
+        // Separar fecha y hora (ej: "13/3/2026, 6:05:26 a. m.")
+        var partes = fechaStr.split(', ');
+        if (partes.length < 2) return null;
+        
+        var fechaParte = partes[0]; // "13/3/2026"
+        var horaParte = partes[1];  // "6:05:26 a. m."
+        
+        // Parsear fecha (dd/mm/yyyy)
+        var fechaParts = fechaParte.split('/');
+        if (fechaParts.length < 3) return null;
+        var dia = parseInt(fechaParts[0], 10);
+        var mes = parseInt(fechaParts[1], 10) - 1; // Meses en JS: 0-11
+        var año = parseInt(fechaParts[2], 10);
+        
+        // Parsear hora con AM/PM
+        var horaLimpia = horaParte.replace('a. m.', 'AM').replace('p. m.', 'PM').replace(/\./g, '').trim();
+        var horaParts = horaLimpia.split(':');
+        if (horaParts.length < 3) return null;
+        
+        var horas = parseInt(horaParts[0], 10);
+        var minutos = parseInt(horaParts[1], 10);
+        var segundos = parseInt(horaParts[2].split(' ')[0], 10);
+        var ampm = horaParts[2].split(' ')[1] || 'AM';
+        
+        // Convertir a formato 24 horas
+        if (ampm === 'PM' && horas < 12) horas += 12;
+        if (ampm === 'AM' && horas === 12) horas = 0;
+        
+        return new Date(año, mes, dia, horas, minutos, segundos);
+      } catch(e) {
+        console.error("Error parseando fecha:", e, fechaStr);
+        return null;
+      }
+    }
+    
+    // Obtener la hora de registro desde los datos locales
+    var horaReg = "—";
+    var fechaObj = null;
+    
+    // Intentar con l.fecha (viene de la columna A)
+    if (l.fecha) {
+      fechaObj = parseFechaLocal(l.fecha);
+    }
+    
+    // Si no funciona, intentar con l.fechaISO
+    if (!fechaObj && l.fechaISO) {
+      try {
+        fechaObj = new Date(l.fechaISO);
+      } catch(e) {}
+    }
+    
+    // Si tenemos fecha, formatear hora
+    if (fechaObj && !isNaN(fechaObj)) {
+      horaReg = fechaObj.toLocaleTimeString("es-CO", {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+    }
+    
+    // Formatear fecha para mostrar (dd/mm)
+    var fechaMostrar = "—";
+    if (l.fecha) {
+      var partes = l.fecha.split(',');
+      fechaMostrar = partes[0].trim(); // "13/3/2026"
+    } else if (l.fechaISO) {
+      try {
+        var d = new Date(l.fechaISO);
+        fechaMostrar = d.toLocaleDateString("es-CO", {
+          day: '2-digit',
+          month: '2-digit'
+        });
       } catch(e) {}
     }
     
     return '<tr>' +
-      '<td style="color:var(--ruby);font-weight:600;white-space:nowrap;font-size:.67rem">' + fmtD(l.fecha) + '</td>' +
+      '<td style="color:var(--ruby);font-weight:600;white-space:nowrap;font-size:.67rem">' + fechaMostrar + '</td>' +
       '<td style="font-weight:600;color:var(--txt)">' + esc(l.nombre) + '</td>' +
       '<td>' + esc(l.ciudad) + '</td>' +
       '<td style="font-size:.65rem">' + esc(l.pdv) + '</td>' +
