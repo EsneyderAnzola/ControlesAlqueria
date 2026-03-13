@@ -734,7 +734,7 @@ input[type=hidden] { display:none; }
       <div class="sec"><h2>Log de Entradas (Check-in)</h2><span class="sec-badge" id="logCnt">—</span></div>
       <div class="panel" style="margin-bottom:32px">
         <div class="tw"><table class="tbl">
-          <thead><tr><th>Fecha</th><th>Asesor</th><th>Ciudad</th><th>PDV</th><th>Hora Entrada</th><th>Observación</th><th>GPS</th></tr></thead>
+          <thead><tr><th>Fecha</th><th>Asesor</th><th>Ciudad</th><th>PDV</th><th>Hora Registro</th><th>Observación</th><th>GPS</th></tr></thead>
           <tbody id="logBody"></tbody>
         </table></div>
       </div>
@@ -1250,14 +1250,41 @@ function rGPS(gD,lD){
   }).join("");
 }
 
-// ── Logs ──
+// ── Logs (CORREGIDO - AHORA MUESTRA LA HORA CORRECTAMENTE) ──
 function rLogs(logs){
   document.getElementById("logCnt").textContent=logs.length;
-  if(!logs.length){document.getElementById("logBody").innerHTML='<tr><td colspan="7"><div class="empty"><p>Sin registros</p></div></td></tr>';return;}
+  if(!logs.length){document.getElementById("logBody").innerHTML='<tr><td colspan="7"><div class="empty"><p>Sin registros de check-in</p></div></td></tr>';return;}
+  
   document.getElementById("logBody").innerHTML=logs.map(function(l){
     var gps="—";
-    if(l.lat&&l.lng){var url="https://www.google.com/maps?q="+l.lat+","+l.lng;gps='<a href="'+url+'" target="_blank" style="color:var(--ruby);font-size:.64rem;font-weight:600;text-decoration:none;white-space:nowrap">📍 '+l.lat.toFixed(4)+','+l.lng.toFixed(4)+'</a>';}
-    return'<tr><td style="color:var(--ruby);font-weight:600;white-space:nowrap;font-size:.67rem">'+fmtD(l.fecha)+'</td><td style="font-weight:600;color:var(--txt)">'+esc(l.nombre)+'</td><td>'+esc(l.ciudad)+'</td><td style="font-size:.65rem">'+esc(l.pdv)+'</td><td style="font-family:\'JetBrains Mono\',monospace">'+fmtT(l.regISO||l.fechaISO)+'</td><td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(l.observacion||"")+'">'+esc(l.observacion||"—")+'</td><td>'+gps+'</td></tr>';
+    if(l.lat&&l.lng){
+      var url="https://www.google.com/maps?q="+l.lat+","+l.lng;
+      gps='<a href="'+url+'" target="_blank" style="color:var(--ruby);font-size:.64rem;font-weight:600;text-decoration:none;white-space:nowrap">📍 '+l.lat.toFixed(4)+','+l.lng.toFixed(4)+'</a>';
+    }
+    
+    // Obtener la hora de registro (prioridad: regISO, fechaISO, o formatear fecha)
+    var horaReg = "—";
+    if(l.regISO) {
+      horaReg = fmtT(l.regISO);
+    } else if(l.fechaISO) {
+      horaReg = fmtT(l.fechaISO);
+    } else if(l.fecha) {
+      // Intentar con la fecha si no hay ISO
+      try {
+        var d = new Date(l.fecha + "T12:00:00");
+        horaReg = d.toLocaleTimeString("es-CO", {hour:"2-digit", minute:"2-digit"});
+      } catch(e) {}
+    }
+    
+    return '<tr>' +
+      '<td style="color:var(--ruby);font-weight:600;white-space:nowrap;font-size:.67rem">' + fmtD(l.fecha) + '</td>' +
+      '<td style="font-weight:600;color:var(--txt)">' + esc(l.nombre) + '</td>' +
+      '<td>' + esc(l.ciudad) + '</td>' +
+      '<td style="font-size:.65rem">' + esc(l.pdv) + '</td>' +
+      '<td style="font-family:\'JetBrains Mono\',monospace; color:var(--gold); font-weight:600">' + horaReg + '</td>' +
+      '<td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + esc(l.observacion||"") + '">' + esc(l.observacion||"—") + '</td>' +
+      '<td>' + gps + '</td>' +
+    '</tr>';
   }).join("");
 }
 
