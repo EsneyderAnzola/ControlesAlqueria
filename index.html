@@ -734,7 +734,15 @@ input[type=hidden] { display:none; }
       <div class="sec"><h2>Log de Entradas (Check-in)</h2><span class="sec-badge" id="logCnt">—</span></div>
       <div class="panel" style="margin-bottom:32px">
         <div class="tw"><table class="tbl">
-          <thead><tr><th>Fecha</th><th>Asesor</th><th>Ciudad</th><th>PDV</th><th>Hora Registro</th><th>Observación</th><th>GPS</th></tr></thead>
+          <thead><tr>
+            <th>Fecha</th>
+            <th>Asesor</th>
+            <th>Ciudad</th>
+            <th>PDV</th>
+            <th>Hora Registro</th>
+            <th>Observación</th>
+            <th>GPS</th>
+          </tr></thead>
           <tbody id="logBody"></tbody>
         </table></div>
       </div>
@@ -938,7 +946,7 @@ function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;")
 function n0(v){ return Number(v)||0; }
 
 // ═══════════════════════════════════════════════════════════════════════
-// FUNCIONES DE RENDERIZADO COMPLETAS (TODAS LAS QUE YA TENÍAMOS)
+// FUNCIONES DE RENDERIZADO COMPLETAS
 // ═══════════════════════════════════════════════════════════════════════
 
 // ── KPIs ──
@@ -1250,7 +1258,7 @@ function rGPS(gD,lD){
   }).join("");
 }
 
-// ── Logs (CORREGIDO - AHORA MUESTRA LA HORA CORRECTAMENTE) ──
+// ── LOGS (CORREGIDO - AHORA MUESTRA LA HORA CORRECTAMENTE) ──
 function rLogs(logs){
   document.getElementById("logCnt").textContent=logs.length;
   if(!logs.length){document.getElementById("logBody").innerHTML='<tr><td colspan="7"><div class="empty"><p>Sin registros de check-in</p></div></td></tr>';return;}
