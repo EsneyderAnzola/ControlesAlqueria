@@ -4,21 +4,13 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Alquería · Dashboard</title>
-<!--
+<!-- 
   ══════════════════════════════════════════════════════════════
-   INSTRUCCIÓN CRÍTICA:
-   Cambia SOLO esta línea con la URL de tu Web App de Google:
-   window.WEBAPP_URL = "https://script.google.com/macros/s/XXXXXXX/exec";
-
-   Cómo obtenerla:
-   1. Abre Apps Script del proyecto
-   2. Implementar → Nueva implementación → Web App
-   3. Ejecutar como: Tú mismo · Acceso: Cualquier persona
-   4. Copia la URL y pégala abajo
+   URL CORRECTA DE TU WEB APP - ¡NO CAMBIES ESTA LÍNEA!
   ══════════════════════════════════════════════════════════════
 -->
 <script>
-  window.WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxFRVLvmZlPxmQy8gNWDomkgg2GYal09OFSxKfj4orKSrAXOD16g_J14kbzGzkS0pj6/exec";
+  window.WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzcVQTdjcqjLpfgybBoX0tXKMJ4blGoEinHhuR220-hV4DWUR0wjIXMlu37RnMMuQ9R/exec";
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
@@ -53,6 +45,8 @@
   --skyl:     #CCE8F5;
   --red:      #8A1010;
   --redl:     #FFD8D8;
+  --mug:      #2A5C8A;
+  --mugl:     #E3F2FD;
   --t1:  var(--ink);
   --t2:  var(--ink2);
   --t3:  #5A4040;
@@ -160,24 +154,28 @@ input[type=date].fctrl{min-width:148px}
 .kpi.am::after{background:linear-gradient(90deg,var(--amber),#E0A030)}
 .kpi.sk::after{background:linear-gradient(90deg,var(--sky),#3AB8E8)}
 .kpi.rd::after{background:linear-gradient(90deg,var(--red),var(--ruby2))}
+.kpi.mg::after{background:linear-gradient(90deg,var(--mug),#4A7CA8)}
 .kpi-ic{width:32px;height:32px;border-radius:9px;background:var(--petal);display:flex;align-items:center;justify-content:center;margin-bottom:9px}
 .kpi.dk .kpi-ic{background:rgba(255,255,255,.1)}
 .kpi.gn .kpi-ic{background:var(--greenl)}
 .kpi.am .kpi-ic{background:var(--amberl)}
 .kpi.sk .kpi-ic{background:var(--skyl)}
 .kpi.rd .kpi-ic{background:var(--redl)}
+.kpi.mg .kpi-ic{background:var(--mugl)}
 .kpi-ic svg{width:16px;height:16px;fill:var(--ruby)}
 .kpi.dk .kpi-ic svg{fill:var(--goldk)}
 .kpi.gn .kpi-ic svg{fill:var(--green)}
 .kpi.am .kpi-ic svg{fill:var(--amber)}
 .kpi.sk .kpi-ic svg{fill:var(--sky)}
 .kpi.rd .kpi-ic svg{fill:var(--red)}
+.kpi.mg .kpi-ic svg{fill:var(--mug)}
 .kpi-val{font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:700;color:var(--wine);line-height:1}
 .kpi.dk .kpi-val{color:var(--goldk)}
 .kpi.gn .kpi-val{color:var(--green)}
 .kpi.am .kpi-val{color:var(--amber)}
 .kpi.sk .kpi-val{color:var(--sky)}
 .kpi.rd .kpi-val{color:var(--red)}
+.kpi.mg .kpi-val{color:var(--mug)}
 .kpi-lbl{font-size:.63rem;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--tmid);margin-top:3px}
 .kpi.dk .kpi-lbl{color:rgba(255,255,255,.45)}
 
@@ -210,6 +208,7 @@ input[type=date].fctrl{min-width:148px}
 .ch-am{background:var(--amberl);color:var(--amber);border:1px solid #F0D080}
 .ch-sk{background:var(--skyl);color:var(--sky);border:1px solid #A0D0F0}
 .ch-rd{background:var(--redl);color:var(--red);border:1px solid #FFAAAA}
+.ch-mg{background:var(--mugl);color:var(--mug);border:1px solid #A0C0E0}
 .ach{display:inline-flex;align-items:center;gap:3px;border-radius:5px;padding:2px 6px;font-size:.63rem;font-weight:700}
 .ach svg{width:9px;height:9px;fill:currentColor}
 .ach.SIN_ENTRADA{background:var(--redl);color:var(--red);border:1px solid #FFAAAA}
@@ -339,7 +338,7 @@ input[type=date].fctrl{min-width:148px}
   <div class="hdr-right">
     <div class="hdr-dot"></div>
     <div class="hdr-clock"><strong id="clockVal">--:--:--</strong><small id="dateVal">--</small></div>
-    <div class="ring-wrap" title="Auto-refresco 60s">
+    <div class="ring-wrap" title="Auto-refresco 60s" onclick="countdown=1">
       <svg viewBox="0 0 36 36"><circle class="t" cx="18" cy="18" r="14"/><circle class="p" id="ringP" cx="18" cy="18" r="14" stroke-dasharray="87.96" stroke-dashoffset="87.96"/></svg>
       <div class="ring-ico"><svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.96 7.96 0 0012 4c-4.42 0-8 3.58-8 8s3.58 8 8 8c3.73 0 6.84-2.55 7.73-6h-2.08A6 6 0 1112 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg></div>
     </div>
@@ -437,9 +436,14 @@ input[type=date].fctrl{min-width:148px}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
+// ══════════════════════════════════════════════════════════════
+//  CÓDIGO CORREGIDO PARA GITHUB PAGES - CON JSONP
+// ══════════════════════════════════════════════════════════════
+
 let DATA=null, map=null, mapMarkers=null, refreshTimer=null, countdown=60;
 const CIRC=2*Math.PI*14;
 
+// Reloj
 (function tick(){
   const n=new Date();
   document.getElementById("clockVal").textContent=n.toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
@@ -447,77 +451,133 @@ const CIRC=2*Math.PI*14;
   setTimeout(tick,1000);
 })();
 
+// Timer de refresco
 function startRefresh(){
-  clearInterval(refreshTimer); countdown=60;
+  clearInterval(refreshTimer); 
+  countdown=60;
   refreshTimer=setInterval(()=>{
     countdown--;
     document.getElementById("cdTxt").textContent=countdown+"s";
-    document.getElementById("ringP").style.strokeDashoffset=CIRC*(countdown/60);
-    if(countdown<=0){countdown=60;loadData(getFilters());}
+    const offset = CIRC * (countdown/60);
+    document.getElementById("ringP").style.strokeDashoffset = offset;
+    if(countdown<=0){countdown=60; loadData(getFilters());}
   },1000);
 }
 
+// Formateadores
 function fmtTime(iso){if(!iso)return"—";try{const d=new Date(iso);return isNaN(d)?"—":d.toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"});}catch(e){return"—";}}
 function fmtDate(str){if(!str)return"Sin fecha";try{const d=new Date(str+"T12:00:00");return isNaN(d)?str:d.toLocaleDateString("es-CO",{weekday:"short",day:"2-digit",month:"short",year:"numeric"});}catch(e){return str;}}
 function fmtDateLong(str){if(!str)return"Sin fecha";try{const d=new Date(str+"T12:00:00");return isNaN(d)?str:d.toLocaleDateString("es-CO",{weekday:"long",day:"2-digit",month:"long",year:"numeric"});}catch(e){return str;}}
 
-function getFilters(){return{fecha:document.getElementById("filtFecha").value||"",ciudad:document.getElementById("filtCiudad").value||"",pdv:document.getElementById("filtPDV").value||""};}
-function applyFilters(){loadData(getFilters());}
-function clearFilters(){document.getElementById("filtFecha").value="";document.getElementById("filtCiudad").value="";document.getElementById("filtPDV").value="";loadData({});}
+// Filtros
+function getFilters(){
+  return{
+    fecha: document.getElementById("filtFecha").value||"",
+    ciudad: document.getElementById("filtCiudad").value||"",
+    pdv: document.getElementById("filtPDV").value||""
+  };
+}
+function applyFilters(){ loadData(getFilters()); }
+function clearFilters(){
+  document.getElementById("filtFecha").value="";
+  document.getElementById("filtCiudad").value="";
+  document.getElementById("filtPDV").value="";
+  loadData({});
+}
 function populateFilters(opts,cur){
   const f=cur||{};
-  const sc=document.getElementById("filtCiudad");sc.innerHTML='<option value="">Todas</option>'+opts.ciudades.map(v=>`<option value="${v}"${v===f.ciudad?" selected":""}>${v}</option>`).join("");
-  const sp=document.getElementById("filtPDV");sp.innerHTML='<option value="">Todos</option>'+opts.pdvs.map(v=>`<option value="${v}"${v===f.pdv?" selected":""}>${v}</option>`).join("");
+  const sc=document.getElementById("filtCiudad");
+  sc.innerHTML='<option value="">Todas</option>'+opts.ciudades.map(v=>`<option value="${v}"${v===f.ciudad?" selected":""}>${v}</option>`).join("");
+  const sp=document.getElementById("filtPDV");
+  sp.innerHTML='<option value="">Todos</option>'+opts.pdvs.map(v=>`<option value="${v}"${v===f.pdv?" selected":""}>${v}</option>`).join("");
 }
 
+// ══════════════════════════════════════════════════════════════
+//  CARGA DE DATOS CON JSONP (FUNCIONA EN GITHUB PAGES)
+// ══════════════════════════════════════════════════════════════
 function loadData(filters){
-  const base=window.WEBAPP_URL||"";
-  if(!base){showErr("Configura WEBAPP_URL en este archivo");return;}
-  // JSONP — unico metodo que evita CORS con Google Apps Script desde GitHub Pages
-  const cbName="gasCB_"+Date.now();
-  const p=Object.assign({mode:"api",callback:cbName},filters||{});
-  // Solo incluir params no vacios
-  const qs=Object.entries(p).filter(([,v])=>v!==undefined&&v!==null&&v!=="").map(([k,v])=>encodeURIComponent(k)+"="+encodeURIComponent(v)).join("&");
-  document.querySelectorAll("script[data-jsonp]").forEach(s=>s.remove());
-  const tid=setTimeout(()=>{
-    delete window[cbName];
-    showErr("Tiempo agotado (20s). Asegurate que el Web App este publicado como Cualquier persona.");
-  },20000);
-  window[cbName]=function(j){
-    clearTimeout(tid);
-    delete window[cbName];
-    if(j&&j.ok) renderAll(j.data);
-    else showErr((j&&j.error)||"Error en la API");
+  const base = window.WEBAPP_URL;
+  if(!base){
+    showErr("Error: WEBAPP_URL no está configurada");
+    return;
+  }
+  
+  // Generar nombre único para el callback
+  const cbName = "gasCB_" + Date.now();
+  const params = {
+    mode: "api",
+    callback: cbName,
+    ...(filters || {})
   };
-  const s=document.createElement("script");
-  s.setAttribute("data-jsonp","1");
-  s.src=base+"?"+qs;
-  s.onerror=function(){
-    clearTimeout(tid);
+  
+  // Limpiar parámetros vacíos
+  const qs = Object.entries(params)
+    .filter(([,v]) => v !== undefined && v !== null && v !== "")
+    .map(([k,v]) => encodeURIComponent(k) + "=" + encodeURIComponent(v))
+    .join("&");
+  
+  // Eliminar scripts anteriores
+  document.querySelectorAll("script[data-jsonp]").forEach(s => s.remove());
+  
+  // Timeout de seguridad
+  const timeoutId = setTimeout(() => {
     delete window[cbName];
-    showErr("Error cargando datos. Verifica la URL y permisos del Web App.");
+    showErr("Tiempo de espera agotado. Verifica la URL del Web App.");
+  }, 20000);
+  
+  // Definir función callback global
+  window[cbName] = function(response) {
+    clearTimeout(timeoutId);
+    delete window[cbName];
+    
+    if(response && response.ok) {
+      renderAll(response.data);
+    } else {
+      showErr(response?.error || "Error al cargar los datos");
+    }
   };
-  document.head.appendChild(s);
+  
+  // Crear script con JSONP
+  const script = document.createElement("script");
+  script.setAttribute("data-jsonp", "1");
+  script.src = base + "?" + qs;
+  script.onerror = function() {
+    clearTimeout(timeoutId);
+    delete window[cbName];
+    showErr("Error de conexión. Verifica la URL y los permisos del Web App.");
+  };
+  document.head.appendChild(script);
 }
-
 
 function showErr(msg){
-  document.getElementById("loading").innerHTML=`<div style="text-align:center;padding:20px"><svg viewBox="0 0 24 24" style="width:48px;height:48px;fill:var(--ruby);display:block;margin:0 auto 12px"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg><p style="color:var(--ruby);font-weight:700;font-size:.9rem;margin-bottom:6px">Error al conectar</p><p style="color:var(--tmid);font-size:.78rem;max-width:320px">${msg}</p></div>`;
+  document.getElementById("loading").innerHTML=`
+    <div style="text-align:center;padding:20px">
+      <svg viewBox="0 0 24 24" style="width:48px;height:48px;fill:var(--ruby);display:block;margin:0 auto 12px">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+      </svg>
+      <p style="color:var(--ruby);font-weight:700;font-size:.9rem;margin-bottom:6px">Error al conectar</p>
+      <p style="color:var(--tmid);font-size:.78rem;max-width:320px">${msg}</p>
+      <button onclick="location.reload()" style="margin-top:14px;background:var(--ruby);color:#fff;border:none;border-radius:8px;padding:8px 20px;cursor:pointer">Reintentar</button>
+    </div>`;
 }
 
+// ══════════════════════════════════════════════════════════════
+//  RENDERIZADO
+// ══════════════════════════════════════════════════════════════
 function renderAll(data){
   DATA=data;
-  populateFilters(data.options,data.filters||{});
-  renderFechaBanner(data.filters,data.kpis);
+  populateFilters(data.options, data.filters||{});
+  renderFechaBanner(data.filters, data.kpis);
   renderKPIs(data.kpis);
   renderSKU(data.skuAgg);
   renderBarChart(data.skuAgg);
-  renderMap(data.mapPoints);
-  renderPersonas(data.personas,data.horasLaboradas);
+  renderMap(data.mapPoints || []);
+  renderPersonas(data.personas, data.horasLaboradas);
   renderHL(data.horasLaboradas);
   renderAlertas(data.alertasGlobales);
   renderLogs(data.lDetail);
   renderTicker(data.alertasGlobales);
+  
   const now=new Date();
   document.getElementById("lupdTime").textContent=now.toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
   document.getElementById("loading").style.display="none";
@@ -527,139 +587,265 @@ function renderAll(data){
 
 function renderFechaBanner(f,k){
   f=f||{};
-  document.getElementById("fbFechaLabel").textContent=f.fecha?fmtDateLong(f.fecha):"Todos los registros";
-  document.getElementById("fbFechaRange").textContent=[f.ciudad,f.pdv].filter(Boolean).join(" · ")||"Sin filtros aplicados";
-  document.getElementById("fbRegistros").textContent=k.registros;
+  document.getElementById("fbFechaLabel").textContent = f.fecha ? fmtDateLong(f.fecha) : "Todos los registros";
+  document.getElementById("fbFechaRange").textContent = [f.ciudad, f.pdv].filter(Boolean).join(" · ") || "Sin filtros aplicados";
+  document.getElementById("fbRegistros").textContent = k.registros;
 }
 
 function renderKPIs(k){
-  const items=[
-    {v:k.totalVentas,l:"Total Ventas",cls:"dk",ic:'<svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96C5 16.1 6.9 18 9 18h12v-2H9.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63H19c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.29.12-.45 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>'},
-    {v:k.totalInicial,l:"Inv. Inicial",ic:'<svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.07-.44.18-.88.18-1.34A4.66 4.66 0 0013.34 0c-1.3 0-2.48.52-3.34 1.36L9 2.37l-1-.99A4.66 4.66 0 003.66.02C1.38.02-.09 1.93.01 4.05c.06.43.16.85.27 1.25H2C.9 5.3.04 6.26.04 7.4v1.6c0 .44.36.8.8.8H3v9c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-9h2.16c.44 0 .8-.36.8-.8V7.4c0-1.14-.86-2.1-2.16-2.1z"/></svg>'},
-    {v:k.rotacionPct+"%",l:"Rotación",cls:"sk",ic:'<svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.96 7.96 0 0012 4c-4.42 0-8 3.58-8 8s3.58 8 8 8c3.73 0 6.84-2.55 7.73-6h-2.08A6 6 0 1112 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>'},
-    {v:k.personasActivas,l:"Personas",cls:"gn",ic:'<svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05C16.19 13.83 17 15 17 16.5V19h6v-2.5C23 14.17 18.33 13 16 13z"/></svg>'},
-    {v:k.registros,l:"Registros",ic:'<svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg>'},
-    {v:k.totalCopas,l:"Copas",cls:"am",ic:'<svg viewBox="0 0 24 24"><path d="M20 3H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.11 0 2-.89 2-2V5c0-1.11-.89-2-2-2zm0 5h-2V5h2v3zM4 19h16v2H4z"/></svg>'},
-    {v:k.totalCuchEnt,l:"Cucharones",ic:'<svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-2 .9-2 2v16c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>'},
-    {v:k.sinEntrada,l:"Sin Entrada",cls:k.sinEntrada>0?"rd":"gn",ic:'<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>'},
+  const items = [
+    {v:k.totalVentas, l:"Total Ventas", cls:"dk", ic:'<svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96C5 16.1 6.9 18 9 18h12v-2H9.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63H19c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.29.12-.45 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>'},
+    {v:k.totalInicial, l:"Inv. Inicial", ic:'<svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.07-.44.18-.88.18-1.34A4.66 4.66 0 0013.34 0c-1.3 0-2.48.52-3.34 1.36L9 2.37l-1-.99A4.66 4.66 0 003.66.02C1.38.02-.09 1.93.01 4.05c.06.43.16.85.27 1.25H2C.9 5.3.04 6.26.04 7.4v1.6c0 .44.36.8.8.8H3v9c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-9h2.16c.44 0 .8-.36.8-.8V7.4c0-1.14-.86-2.1-2.16-2.1z"/></svg>'},
+    {v:k.rotacionPct+"%", l:"Rotación", cls:"sk", ic:'<svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.96 7.96 0 0012 4c-4.42 0-8 3.58-8 8s3.58 8 8 8c3.73 0 6.84-2.55 7.73-6h-2.08A6 6 0 1112 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>'},
+    {v:k.personasActivas, l:"Personas", cls:"gn", ic:'<svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05C16.19 13.83 17 15 17 16.5V19h6v-2.5C23 14.17 18.33 13 16 13z"/></svg>'},
+    {v:k.registros, l:"Registros", ic:'<svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg>'},
+    {v:k.totalCopas, l:"Copas", cls:"am", ic:'<svg viewBox="0 0 24 24"><path d="M20 3H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.11 0 2-.89 2-2V5c0-1.11-.89-2-2-2zm0 5h-2V5h2v3zM4 19h16v2H4z"/></svg>'},
+    {v:k.totalMugs, l:"Mugs ($60k)", cls:"mg", ic:'<svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/></svg>'},
+    {v:k.sinEntrada, l:"Sin Entrada", cls:k.sinEntrada>0?"rd":"gn", ic:'<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>'},
   ];
-  document.getElementById("kpiRow").innerHTML=items.map(it=>`<div class="kpi ${it.cls||""}"><div class="kpi-ic">${it.ic}</div><div class="kpi-val">${it.v}</div><div class="kpi-lbl">${it.l}</div></div>`).join("");
+  document.getElementById("kpiRow").innerHTML = items.map(it => 
+    `<div class="kpi ${it.cls||''}"><div class="kpi-ic">${it.ic}</div><div class="kpi-val">${it.v}</div><div class="kpi-lbl">${it.l}</div></div>`
+  ).join("");
 }
 
 function renderSKU(skuAgg){
-  let lastCat="",html="";
+  let lastCat="", html="";
   skuAgg.forEach(s=>{
-    if(s.cat!==lastCat){html+=`<tr class="sku-cat"><td colspan="4">${s.cat}</td></tr>`;lastCat=s.cat;}
-    const pct=s.ini>0?(s.vta/s.ini*100):0;
-    html+=`<tr><td style="font-weight:500">${s.label}</td><td><span class="chip ch-g">${s.ini}</span></td><td><span class="chip ch-r">${s.vta}</span></td><td><div class="bar-wrap"><div class="bar-tr"><div class="bar-fl" style="width:${pct.toFixed(0)}%"></div></div><div class="bar-pct">${pct.toFixed(0)}%</div></div></td></tr>`;
+    if(s.cat!==lastCat){
+      html+=`<tr class="sku-cat"><td colspan="4">${s.cat}</td></tr>`;
+      lastCat=s.cat;
+    }
+    const pct = s.ini>0 ? Math.round(s.vta/s.ini*100) : 0;
+    html+=`<tr><td style="font-weight:500">${s.label}</td><td><span class="chip ch-g">${s.ini}</span></td><td><span class="chip ch-r">${s.vta}</span></td><td><div class="bar-wrap"><div class="bar-tr"><div class="bar-fl" style="width:${pct}%"></div></div><div class="bar-pct">${pct}%</div></div></td></tr>`;
   });
-  document.getElementById("skuBody").innerHTML=html;
-  document.getElementById("skuBadge").textContent=skuAgg.length+" SKUs";
+  document.getElementById("skuBody").innerHTML = html;
+  document.getElementById("skuBadge").textContent = skuAgg.length+" SKUs";
 }
 
 function renderBarChart(skuAgg){
-  const maxIni=Math.max(...skuAgg.map(s=>s.ini),1);
-  document.getElementById("barchartWrap").innerHTML=skuAgg.map(s=>{
-    const w=Math.round(s.vta/maxIni*100);
-    const short=s.label.replace("Crema Leche Roja","CLR").replace("Crema Culinaria","CC").replace("Suero Costeño","SC");
+  const maxIni = Math.max(...skuAgg.map(s=>s.ini), 1);
+  document.getElementById("barchartWrap").innerHTML = skuAgg.map(s=>{
+    const w = Math.round(s.vta/maxIni*100);
+    const short = s.label.replace("Crema Leche Roja","CLR").replace("Crema Culinaria","CC").replace("Suero Costeño","SC");
     return `<div class="bc-row"><div class="bc-lbl">${short}</div><div class="bc-tr"><div class="bc-fl" style="width:${w}%">${s.vta>0?`<span>${s.vta}</span>`:""}</div></div><div class="bc-ini">${s.ini}</div></div>`;
   }).join("");
 }
 
 function renderMap(points){
   if(!map){
-    map=L.map("mapLeaflet",{zoomControl:true});
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
-    mapMarkers=L.layerGroup().addTo(map);
+    map = L.map("mapLeaflet", {zoomControl:true});
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom:19, attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
+    mapMarkers = L.layerGroup().addTo(map);
   }
   mapMarkers.clearLayers();
-  const valid=points.filter(p=>p.lat&&p.lng);
-  document.getElementById("mapBadge").textContent=valid.length+" puntos";
-  if(!valid.length){map.setView([4.71,-74.07],11);return;}
+  
+  const valid = points.filter(p=>p.lat && p.lng);
+  document.getElementById("mapBadge").textContent = valid.length+" puntos";
+  
+  if(!valid.length){
+    map.setView([4.71, -74.07], 11);
+    return;
+  }
+  
   valid.forEach(p=>{
-    const color=p.tipo==="reporte"?"#9C2538":"#145C80";
-    const icon=L.divIcon({className:"",html:`<div style="width:14px;height:14px;border-radius:50%;background:${color};border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3)"></div>`,iconSize:[14,14],iconAnchor:[7,7]});
-    const popup=`<div class="map-pop"><span class="mpfecha">${fmtDate(p.fecha)}</span><strong>${p.pdv||p.nombre||"—"}</strong><div>${p.nombre||""}</div><div style="color:var(--tmid);font-size:.65rem">${p.ciudad||""}</div><div class="mptipo">${p.tipo==="reporte"?"Reporte":"Entrada"} · ${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}</div></div>`;
-    L.marker([p.lat,p.lng],{icon}).addTo(mapMarkers).bindPopup(popup,{maxWidth:220});
+    const color = p.tipo==="reporte" ? "#9C2538" : "#145C80";
+    const icon = L.divIcon({
+      className: "",
+      html: `<div style="width:14px;height:14px;border-radius:50%;background:${color};border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3)"></div>`,
+      iconSize: [14,14],
+      iconAnchor: [7,7]
+    });
+    const popup = `<div class="map-pop"><span class="mpfecha">${fmtDate(p.fecha)}</span><strong>${p.pdv||p.nombre||"—"}</strong><div>${p.nombre||""}</div><div style="color:var(--tmid);font-size:.65rem">${p.ciudad||""}</div><div class="mptipo">${p.tipo==="reporte"?"Reporte":"Entrada"} · ${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}</div></div>`;
+    L.marker([p.lat,p.lng], {icon}).addTo(mapMarkers).bindPopup(popup, {maxWidth:220});
   });
-  if(valid.length===1)map.setView([valid[0].lat,valid[0].lng],15);
-  else map.fitBounds(L.latLngBounds(valid.map(p=>[p.lat,p.lng])),{padding:[30,30]});
+  
+  if(valid.length===1){
+    map.setView([valid[0].lat, valid[0].lng], 15);
+  } else {
+    map.fitBounds(L.latLngBounds(valid.map(p=>[p.lat,p.lng])), {padding:[30,30]});
+  }
 }
 
-function renderPersonas(personas,hl){
-  document.getElementById("pCount").textContent=personas.length;
-  if(!personas.length){document.getElementById("pgrid").innerHTML=`<div class="panel"><div class="empty"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05C16.19 13.83 17 15 17 16.5V19h6v-2.5C23 14.17 18.33 13 16 13z"/></svg><p>Sin personas en el periodo</p></div></div>`;return;}
-  document.getElementById("pgrid").innerHTML=personas.map(p=>{
-    const hlP=hl.filter(h=>h.nombre===p.nombre);
-    const hArr=hlP.filter(h=>h.horas!==null).map(h=>h.horas);
-    const avgH=hArr.length?(hArr.reduce((s,v)=>s+v,0)/hArr.length).toFixed(1):"—";
-    const ultFecha=[...new Set(hlP.map(h=>h.fecha).filter(Boolean))].sort().reverse()[0];
-    return `<div class="pcard" onclick="openModal('${encodeURIComponent(p.nombre)}')"><div class="pav"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div><div class="pname">${p.nombre}</div><div class="psub">${p.ciudad} · ${p.pdv}</div><div class="pfecha">${fmtDate(ultFecha)}</div><div class="pstats"><div class="pst"><div class="pst-val">${p.registros}</div><div class="pst-lbl">Rep.</div></div><div class="pst"><div class="pst-val">${p.totalVentas}</div><div class="pst-lbl">Ventas</div></div><div class="pst"><div class="pst-val">${p.diasActivos}</div><div class="pst-lbl">Días</div></div><div class="pst"><div class="pst-val">${avgH}${avgH!=="—"?"h":""}</div><div class="pst-lbl">Prom h</div></div></div></div>`;
+function renderPersonas(personas, hl){
+  document.getElementById("pCount").textContent = personas.length;
+  if(!personas.length){
+    document.getElementById("pgrid").innerHTML = `<div class="panel"><div class="empty"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05C16.19 13.83 17 15 17 16.5V19h6v-2.5C23 14.17 18.33 13 16 13z"/></svg><p>Sin personas en el periodo</p></div></div>`;
+    return;
+  }
+  
+  document.getElementById("pgrid").innerHTML = personas.map(p=>{
+    const hlP = hl.filter(h=>h.nombre===p.nombre);
+    const hArr = hlP.filter(h=>h.horas!==null).map(h=>h.horas);
+    const avgH = hArr.length ? (hArr.reduce((s,v)=>s+v,0)/hArr.length).toFixed(1) : "—";
+    const ultFecha = [...new Set(hlP.map(h=>h.fecha).filter(Boolean))].sort().reverse()[0];
+    return `<div class="pcard" onclick="openModal('${encodeURIComponent(p.nombre)}')">
+      <div class="pav"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>
+      <div class="pname">${p.nombre}</div>
+      <div class="psub">${p.ciudad} · ${p.pdv}</div>
+      <div class="pfecha">${fmtDate(ultFecha)}</div>
+      <div class="pstats">
+        <div class="pst"><div class="pst-val">${p.registros}</div><div class="pst-lbl">Rep.</div></div>
+        <div class="pst"><div class="pst-val">${p.totalVentas}</div><div class="pst-lbl">Ventas</div></div>
+        <div class="pst"><div class="pst-val">${p.diasActivos}</div><div class="pst-lbl">Días</div></div>
+        <div class="pst"><div class="pst-val">${avgH}${avgH!=="—"?"h":""}</div><div class="pst-lbl">Prom h</div></div>
+      </div>
+    </div>`;
   }).join("");
 }
 
 function renderHL(hl){
-  document.getElementById("hlBadge").textContent=hl.length;
-  if(!hl.length){document.getElementById("hlBody").innerHTML=`<tr><td colspan="8" class="empty"><p>Sin datos de tiempo</p></td></tr>`;return;}
-  document.getElementById("hlBody").innerHTML=hl.map(h=>{
-    const chips=h.alertas.length?h.alertas.map(a=>`<span class="ach ${a.tipo}"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>${a.tipo.replace(/_/g," ")}</span>`).join(" "):`<span class="ach OK"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>OK</span>`;
-    return `<tr><td><strong style="color:var(--ruby);font-size:.76rem">${fmtDate(h.fecha)}</strong></td><td><span class="nm-link" onclick="openModal('${encodeURIComponent(h.nombre)}')">${h.nombre}</span></td><td>${h.ciudad}</td><td style="font-size:.7rem">${h.pdv}</td><td>${fmtTime(h.entISO)}</td><td>${fmtTime(h.salISO)}</td><td><span class="hbig">${h.horasLabel}</span></td><td>${chips}</td></tr>`;
+  document.getElementById("hlBadge").textContent = hl.length;
+  if(!hl.length){
+    document.getElementById("hlBody").innerHTML = `<tr><td colspan="8" class="empty"><p>Sin datos de tiempo</p></td></tr>`;
+    return;
+  }
+  
+  document.getElementById("hlBody").innerHTML = hl.map(h=>{
+    const chips = h.alertas.length 
+      ? h.alertas.map(a=>`<span class="ach ${a.tipo}"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>${a.tipo.replace(/_/g," ")}</span>`).join(" ")
+      : `<span class="ach OK"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>OK</span>`;
+    return `<tr>
+      <td><strong style="color:var(--ruby);font-size:.76rem">${fmtDate(h.fecha)}</strong></td>
+      <td><span class="nm-link" onclick="openModal('${encodeURIComponent(h.nombre)}')">${h.nombre}</span></td>
+      <td>${h.ciudad}</td>
+      <td style="font-size:.7rem">${h.pdv}</td>
+      <td>${fmtTime(h.entISO)}</td>
+      <td>${fmtTime(h.salISO)}</td>
+      <td><span class="hbig">${h.horasLabel}</span></td>
+      <td>${chips}</td>
+    </tr>`;
   }).join("");
 }
 
 function renderAlertas(alertas){
-  document.getElementById("alertBadge").textContent=alertas.length||"0";
-  if(!alertas.length){document.getElementById("alist").innerHTML=`<div class="empty"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg><p>Sin alertas activas</p></div>`;return;}
-  document.getElementById("alist").innerHTML=alertas.map(a=>`<div class="arow"><div class="adot ${a.tipo}"></div><div class="amsg"><strong>${a.nombre}</strong> — ${a.label}</div><div class="ameta"><div class="adf">${fmtDate(a.fecha)}</div>${a.pdv}</div></div>`).join("");
+  document.getElementById("alertBadge").textContent = alertas.length||"0";
+  if(!alertas.length){
+    document.getElementById("alist").innerHTML = `<div class="empty"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg><p>Sin alertas activas</p></div>`;
+    return;
+  }
+  document.getElementById("alist").innerHTML = alertas.map(a=>`
+    <div class="arow">
+      <div class="adot ${a.tipo}"></div>
+      <div class="amsg"><strong>${a.nombre}</strong> — ${a.label}</div>
+      <div class="ameta"><div class="adf">${fmtDate(a.fecha)}</div>${a.pdv}</div>
+    </div>
+  `).join("");
 }
 
 function renderLogs(logs){
-  document.getElementById("logBadge").textContent=logs.length;
-  if(!logs.length){document.getElementById("logBody").innerHTML=`<tr><td colspan="5" class="empty"><p>Sin registros de entrada</p></td></tr>`;return;}
-  document.getElementById("logBody").innerHTML=logs.map(l=>`<tr><td><strong style="color:var(--ruby);font-size:.76rem">${fmtDate(l.fecha)}</strong></td><td><span class="nm-link" onclick="openModal('${encodeURIComponent(l.nombre)}')">${l.nombre}</span></td><td style="font-size:.7rem">${l.pdv}</td><td>${fmtTime(l.regISO)}</td><td>${l.obs||"—"}</td></tr>`).join("");
+  document.getElementById("logBadge").textContent = logs.length;
+  if(!logs.length){
+    document.getElementById("logBody").innerHTML = `<tr><td colspan="5" class="empty"><p>Sin registros de entrada</p></td></tr>`;
+    return;
+  }
+  document.getElementById("logBody").innerHTML = logs.map(l=>`
+    <tr>
+      <td><strong style="color:var(--ruby);font-size:.76rem">${fmtDate(l.fecha)}</strong></td>
+      <td><span class="nm-link" onclick="openModal('${encodeURIComponent(l.nombre)}')">${l.nombre}</span></td>
+      <td style="font-size:.7rem">${l.pdv}</td>
+      <td>${fmtTime(l.regISO)}</td>
+      <td>${l.observacion||"—"}</td>
+    </tr>
+  `).join("");
 }
 
 function renderTicker(alertas){
-  const c=alertas.filter(a=>["SIN_ENTRADA","JORNADA_LARGA"].includes(a.tipo));
-  const t=document.getElementById("ticker");
-  if(!c.length){t.classList.remove("on");return;}
-  const txt=c.map(a=>`${a.label} · ${a.nombre}`).join("   ·   ");
-  document.getElementById("tickerInner").innerHTML=`<span>${txt}</span><span>${txt}</span>`;
-  t.classList.add("on");
+  const crit = alertas.filter(a=>["SIN_ENTRADA","JORNADA_LARGA"].includes(a.tipo));
+  const ticker = document.getElementById("ticker");
+  if(!crit.length){
+    ticker.classList.remove("on");
+    return;
+  }
+  const txt = crit.map(a=>`${a.label} · ${a.nombre}`).join("   ·   ");
+  document.getElementById("tickerInner").innerHTML = `<span>${txt}</span><span>${txt}</span>`;
+  ticker.classList.add("on");
 }
 
 function openModal(enc){
-  const nombre=decodeURIComponent(enc);
-  if(!DATA)return;
-  const p=DATA.personas.find(x=>x.nombre===nombre)||{};
-  const gs=DATA.gDetail.filter(g=>g.nombre===nombre);
-  const hl=DATA.horasLaboradas.filter(h=>h.nombre===nombre);
-  const al=DATA.alertasGlobales.filter(a=>a.nombre===nombre);
-  document.getElementById("mName").textContent=nombre;
-  document.getElementById("mSub").textContent=[p.ciudad,p.pdv].filter(Boolean).join(" · ");
-  const skuMap={};
-  gs.forEach(g=>g.skus.forEach(s=>{if(!skuMap[s.key])skuMap[s.key]={label:s.label,ini:0,vta:0};skuMap[s.key].ini+=s.ini;skuMap[s.key].vta+=s.vta;}));
-  const totV=Object.values(skuMap).reduce((s,v)=>s+v.vta,0);
-  const hArr=hl.filter(h=>h.horas!==null).map(h=>h.horas);
-  const avgH=hArr.length?(hArr.reduce((s,v)=>s+v,0)/hArr.length).toFixed(1)+"h":"—";
-  const fechasUnicas=[...new Set(gs.map(g=>g.fecha))].sort().reverse();
-  let html=`
-    <div class="msec"><div class="msec-title">Resumen</div><div class="mkpis"><div class="mk"><div class="mk-val">${p.registros||0}</div><div class="mk-lbl">Reportes</div></div><div class="mk"><div class="mk-val">${totV}</div><div class="mk-lbl">Ventas</div></div><div class="mk"><div class="mk-val">${avgH}</div><div class="mk-lbl">Prom h/día</div></div></div></div>
-    <div class="msec"><div class="msec-title">Fechas de Actividad</div><div style="display:flex;flex-wrap:wrap;gap:4px">${fechasUnicas.map(f=>`<span class="mfecha-tag"><svg viewBox="0 0 24 24" style="width:11px;height:11px;fill:var(--ruby)"><path d="M20 3h-1V1h-2v2H7V1H5v2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 18H4V8h16v13z"/></svg>${fmtDate(f)}</span>`).join("")||"<span style='font-size:.76rem;color:var(--tlt)'>Sin fechas</span>"}</div></div>
-    <div class="msec"><div class="msec-title">Ventas por SKU</div><div class="msku-grid">${Object.values(skuMap).filter(s=>s.ini>0||s.vta>0).map(s=>`<div class="msku"><div class="mn">${s.label}</div><div class="mv">Ini: ${s.ini} · Vta: <span>${s.vta}</span></div></div>`).join("")||"<span style='font-size:.76rem;color:var(--tlt)'>Sin datos</span>"}</div></div>
-    <div class="msec"><div class="msec-title">Control de Tiempos</div>${hl.map(h=>`<div class="mrow"><svg viewBox="0 0 24 24"><path d="M12 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg><span><strong style="color:var(--ruby)">${fmtDate(h.fecha)}</strong> · E: ${fmtTime(h.entISO)} · S: ${fmtTime(h.salISO)} · <strong>${h.horasLabel}</strong></span></div>`).join("")||"<p style='font-size:.76rem;color:var(--tlt)'>Sin datos</p>"}</div>`;
-  if(al.length)html+=`<div class="msec"><div class="msec-title">Alertas (${al.length})</div>${al.map(a=>`<div class="malerta-item"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg><span>${a.label}</span></div>`).join("")}</div>`;
-  const gps=gs.filter(g=>g.lat&&g.lng);
-  if(gps.length)html+=`<div class="msec"><div class="msec-title">Ubicaciones GPS</div>${gps.map(g=>`<div class="mrow"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg><span><strong style="color:var(--ruby)">${fmtDate(g.fecha)}</strong> · <a href="https://www.google.com/maps?q=${g.lat},${g.lng}" target="_blank">${g.lat.toFixed(5)}, ${g.lng.toFixed(5)}</a></span></div>`).join("")}</div>`;
-  const ops=gs.flatMap(g=>[g.op1,g.op2].filter(Boolean));
-  if(ops.length)html+=`<div class="msec"><div class="msec-title">Opiniones</div>${ops.map(o=>`<div class="mrow"><svg viewBox="0 0 24 24" style="fill:var(--gold)"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg><span>${o}</span></div>`).join("")}</div>`;
-  document.getElementById("mbody").innerHTML=html;
+  const nombre = decodeURIComponent(enc);
+  if(!DATA) return;
+  
+  const p = DATA.personas.find(x=>x.nombre===nombre) || {};
+  const gs = DATA.gDetail.filter(g=>g.nombre===nombre);
+  const hl = DATA.horasLaboradas.filter(h=>h.nombre===nombre);
+  const al = DATA.alertasGlobales.filter(a=>a.nombre===nombre);
+  
+  document.getElementById("mName").textContent = nombre;
+  document.getElementById("mSub").textContent = [p.ciudad, p.pdv].filter(Boolean).join(" · ");
+  
+  const skuMap = {};
+  gs.forEach(g=>g.skus.forEach(s=>{
+    if(!skuMap[s.key]) skuMap[s.key] = {label:s.label, ini:0, vta:0};
+    skuMap[s.key].ini += s.ini;
+    skuMap[s.key].vta += s.vta;
+  }));
+  
+  const totV = Object.values(skuMap).reduce((s,v)=>s+v.vta,0);
+  const hArr = hl.filter(h=>h.horas!==null).map(h=>h.horas);
+  const avgH = hArr.length ? (hArr.reduce((s,v)=>s+v,0)/hArr.length).toFixed(1)+"h" : "—";
+  const fechasUnicas = [...new Set(gs.map(g=>g.fecha))].sort().reverse();
+  
+  let html = `
+    <div class="msec">
+      <div class="msec-title">Resumen</div>
+      <div class="mkpis">
+        <div class="mk"><div class="mk-val">${p.registros||0}</div><div class="mk-lbl">Reportes</div></div>
+        <div class="mk"><div class="mk-val">${totV}</div><div class="mk-lbl">Ventas</div></div>
+        <div class="mk"><div class="mk-val">${avgH}</div><div class="mk-lbl">Prom h/día</div></div>
+      </div>
+    </div>
+    <div class="msec">
+      <div class="msec-title">Fechas de Actividad</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px">
+        ${fechasUnicas.map(f=>`<span class="mfecha-tag"><svg viewBox="0 0 24 24" style="width:11px;height:11px;fill:var(--ruby)"><path d="M20 3h-1V1h-2v2H7V1H5v2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 18H4V8h16v13z"/></svg>${fmtDate(f)}</span>`).join("")||"<span style='font-size:.76rem;color:var(--tlt)'>Sin fechas</span>"}
+      </div>
+    </div>
+    <div class="msec">
+      <div class="msec-title">Ventas por SKU</div>
+      <div class="msku-grid">
+        ${Object.values(skuMap).filter(s=>s.ini>0||s.vta>0).map(s=>`<div class="msku"><div class="mn">${s.label}</div><div class="mv">Ini: ${s.ini} · Vta: <span>${s.vta}</span></div></div>`).join("")||"<span style='font-size:.76rem;color:var(--tlt)'>Sin datos</span>"}
+      </div>
+    </div>
+    <div class="msec">
+      <div class="msec-title">Control de Tiempos</div>
+      ${hl.map(h=>`<div class="mrow"><svg viewBox="0 0 24 24"><path d="M12 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg><span><strong style="color:var(--ruby)">${fmtDate(h.fecha)}</strong> · E: ${fmtTime(h.entISO)} · S: ${fmtTime(h.salISO)} · <strong>${h.horasLabel}</strong></span></div>`).join("")||"<p style='font-size:.76rem;color:var(--tlt)'>Sin datos</p>"}
+    </div>`;
+  
+  if(al.length){
+    html += `<div class="msec">
+      <div class="msec-title">Alertas (${al.length})</div>
+      ${al.map(a=>`<div class="malerta-item"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg><span>${a.label}</span></div>`).join("")}
+    </div>`;
+  }
+  
+  const gps = gs.filter(g=>g.lat&&g.lng);
+  if(gps.length){
+    html += `<div class="msec">
+      <div class="msec-title">Ubicaciones GPS</div>
+      ${gps.map(g=>`<div class="mrow"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg><span><strong style="color:var(--ruby)">${fmtDate(g.fecha)}</strong> · <a href="https://www.google.com/maps?q=${g.lat},${g.lng}" target="_blank">${g.lat.toFixed(5)}, ${g.lng.toFixed(5)}</a></span></div>`).join("")}
+    </div>`;
+  }
+  
+  const ops = gs.flatMap(g=>[g.opinion1, g.opinion2].filter(Boolean));
+  if(ops.length){
+    html += `<div class="msec">
+      <div class="msec-title">Opiniones</div>
+      ${ops.map(o=>`<div class="mrow"><svg viewBox="0 0 24 24" style="fill:var(--gold)"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg><span>${o}</span></div>`).join("")}
+    </div>`;
+  }
+  
+  document.getElementById("mbody").innerHTML = html;
   document.getElementById("moverlay").classList.add("open");
 }
 
-function closeModal(e){if(!e||e.target===document.getElementById("moverlay")||e.target.closest(".mclose"))document.getElementById("moverlay").classList.remove("open");}
+function closeModal(e){
+  if(!e || e.target===document.getElementById("moverlay") || e.target.closest(".mclose")){
+    document.getElementById("moverlay").classList.remove("open");
+  }
+}
 
-window.addEventListener("load",()=>loadData({}));
+// Iniciar carga al cargar la página
+window.addEventListener("load", ()=>loadData({}));
 </script>
 </body>
 </html>
