@@ -1160,15 +1160,86 @@ function tgPe(idx,enc){
   },150);
 }
 
-// ── Tiempos ──
+// ── Tiempos (CORREGIDO - USA COLUMNA G) ──
 function rHL(arr){
   document.getElementById("hlCnt").textContent=arr.length;
   if(!arr.length){document.getElementById("hlBody").innerHTML='<tr><td colspan="8"><div class="empty"><p>Sin datos</p></div></td></tr>';return;}
-  var cm={SIN_ENTRADA:"chip-w",SIN_REPORTE:"chip-w",JORNADA_LARGA:"chip-a",JORNADA_CORTA:"chip-s",SIN_VENTAS:"chip-n",SIN_OBS:"chip-n"};
+  
+  // Función para formatear hora desde columna G (sin coma)
+  function formatearHoraSistema(fechaStr) {
+    if (!fechaStr) return "—";
+    try {
+      // Formato esperado: "13/3/2026 12:34:22"
+      var partes = fechaStr.split(' ');
+      if (partes.length < 2) return "—";
+      
+      var horaParte = partes[1];  // "12:34:22"
+      var horaParts = horaParte.split(':');
+      if (horaParts.length < 2) return "—";
+      
+      var horas = parseInt(horaParts[0], 10);
+      var minutos = parseInt(horaParts[1], 10);
+      
+      // Formatear como hh:mm AM/PM
+      var ampm = horas >= 12 ? 'p. m.' : 'a. m.';
+      horas = horas % 12;
+      horas = horas ? horas : 12; // la hora 0 debe ser 12
+      
+      return horas + ':' + (minutos < 10 ? '0' + minutos : minutos) + ' ' + ampm;
+    } catch(e) {
+      return "—";
+    }
+  }
+  
+  var cm={SIN_ENTRADA:"chip-w", SIN_REPORTE:"chip-w", JORNADA_LARGA:"chip-a", JORNADA_CORTA:"chip-s", SIN_VENTAS:"chip-n", SIN_OBS:"chip-n"};
+  
   document.getElementById("hlBody").innerHTML=arr.map(function(h){
-    var chips=h.alertas.map(function(a){return'<span class="chip '+(cm[a.tipo]||"chip-n")+'">'+a.tipo.replace(/_/g," ")+'</span>';}).join(" ");
-    if(!h.alertas.length)chips='<span class="chip chip-ok">OK</span>';
-    return'<tr><td style="font-weight:700;color:var(--txt)">'+esc(h.nombre)+'</td><td>'+esc(h.ciudad)+'</td><td style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(h.pdv)+'">'+esc(h.pdv)+'</td><td style="color:var(--ruby);font-weight:600;white-space:nowrap">'+fmtD(h.fecha)+'</td><td style="font-family:\'JetBrains Mono\',monospace">'+fmtT(h.entradaISO||h.entISO)+'</td><td style="font-family:\'JetBrains Mono\',monospace">'+fmtT(h.salidaISO||h.salISO)+'</td><td style="font-family:\'JetBrains Mono\',monospace;font-weight:600;color:var(--txt)">'+h.horasLabel+'</td><td>'+chips+'</td></tr>';
+    var chips = h.alertas.map(function(a){
+      return '<span class="chip '+(cm[a.tipo]||"chip-n")+'">'+a.tipo.replace(/_/g," ")+'</span>';
+    }).join(" ");
+    
+    if(!h.alertas.length) chips = '<span class="chip chip-ok">OK</span>';
+    
+    // Formatear fecha (dd/mm)
+    var fechaMostrar = "—";
+    if (h.fecha) {
+      if (h.fecha.includes('/')) {
+        var partes = h.fecha.split(',')[0]; // "13/3/2026"
+        fechaMostrar = partes.trim();
+      } else {
+        try {
+          var d = new Date(h.fecha + "T12:00:00");
+          fechaMostrar = d.toLocaleDateString("es-CO", {day:"2-digit", month:"2-digit"});
+        } catch(e) {}
+      }
+    }
+    
+    // Procesar entrada (columna G de Logs)
+    var entrada = "—";
+    if (h.entradaISO) {
+      entrada = formatearHoraSistema(h.entradaISO);
+    } else if (h.entISO) {
+      entrada = formatearHoraSistema(h.entISO);
+    }
+    
+    // Procesar salida (columna G de Gestión)
+    var salida = "—";
+    if (h.salidaISO) {
+      salida = formatearHoraSistema(h.salidaISO);
+    } else if (h.salISO) {
+      salida = formatearHoraSistema(h.salISO);
+    }
+    
+    return '<tr>' +
+      '<td style="font-weight:700;color:var(--txt)">' + esc(h.nombre) + '</td>' +
+      '<td>' + esc(h.ciudad) + '</td>' +
+      '<td style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + esc(h.pdv) + '">' + esc(h.pdv) + '</td>' +
+      '<td style="color:var(--ruby);font-weight:600;white-space:nowrap">' + fechaMostrar + '</td>' +
+      '<td style="font-family:\'JetBrains Mono\',monospace; color:var(--gold)">' + entrada + '</td>' +
+      '<td style="font-family:\'JetBrains Mono\',monospace; color:var(--gold)">' + salida + '</td>' +
+      '<td style="font-family:\'JetBrains Mono\',monospace;font-weight:600;color:var(--txt)">' + h.horasLabel + '</td>' +
+      '<td>' + chips + '</td>' +
+    '</tr>';
   }).join("");
 }
 
