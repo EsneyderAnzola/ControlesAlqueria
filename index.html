@@ -636,7 +636,13 @@ input[type=hidden] { display:none; }
       <div class="panel" style="margin-bottom:12px">
         <div class="ph"><svg viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg><h3>Ventas por día</h3><span class="pb" id="trendPb">14 días</span></div>
         <div class="chart-wrap" style="position:relative">
-          <svg id="svgT" class="chart-svg" viewBox="0 0 700 130" style="height:130px" preserveAspectRatio="none"></svg>
+          <svg id="svgT" class="chart-svg" viewBox="0 0 700 130" style="height:130px" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="ag1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#E8405A" stop-opacity=".25"/><stop offset="100%" stop-color="#E8405A" stop-opacity="0"/></linearGradient>
+              <linearGradient id="ag2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FF7088" stop-opacity=".15"/><stop offset="100%" stop-color="#FF7088" stop-opacity="0"/></linearGradient>
+              <linearGradient id="ag3" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4AA8FF" stop-opacity=".1"/><stop offset="100%" stop-color="#4AA8FF" stop-opacity="0"/></linearGradient>
+            </defs>
+          </svg>
           <div class="ctip" id="tipT"></div>
         </div>
         <div class="chart-legend">
@@ -871,30 +877,358 @@ function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").
 function n0(v){return Number(v)||0;}
 
 // ═══════════════════════════════════════════════════════════════════════
-// FUNCIONES DE RENDERIZADO (versión simplificada)
+// FUNCIONES DE RENDERIZADO COMPLETAS
 // ═══════════════════════════════════════════════════════════════════════
+
+// ── KPIs ──
+function rKPIs(k){
+  var items=[
+    {v:k.totalVentas,         l:"Unidades vendidas",   c:"",       i:'<svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96C5 16.1 6.9 18 9 18h12v-2H9.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63H19c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0023.45 5H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>'},
+    {v:k.rotacionPct+"%",     l:"Rotación general",    c:"kc-sky", i:'<svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>'},
+    {v:k.totalRedenciones,    l:"Redenciones $15k",    c:"kc-gold",i:'<svg viewBox="0 0 24 24"><path d="M11.5 2C6.81 2 3 5.81 3 10.5S6.81 19 11.5 19h.5v3c4.86-2.34 8-7 8-11.5C20 5.81 16.19 2 11.5 2zm1 14.5h-2v-2h2v2zm0-4h-2c0-3.25 3-3 3-5 0-1.1-.9-2-2-2s-2 .9-2 2h-2c0-2.21 1.79-4 4-4s4 1.79 4 4c0 2.5-3 2.75-3 5z"/></svg>'},
+    {v:k.totalMugs,           l:"MUGs $60k entregados",c:"kc-amb", i:'<svg viewBox="0 0 24 24"><path d="M18.5 3H6c-1.1 0-2 .9-2 2v5.71c0 3.83 2.95 7.18 6.78 7.29 3.96.12 7.22-3.06 7.22-7v-1h.5c1.93 0 3.5-1.57 3.5-3.5S20.43 3 18.5 3zM16 7H8V5h8v2zm2.5 0H18V5h.5c.83 0 1.5.67 1.5 1.5S19.33 7 18.5 7z"/></svg>'},
+    {v:k.personasActivas,     l:"Asesores activos",    c:"kc-grn", i:'<svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 3-1.34 3-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5C23 14.17 18.33 13 16 13z"/></svg>'},
+    {v:k.promedioHoras+"h",   l:"Promedio hrs/día",    c:"",       i:'<svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>'},
+    {v:k.totalCopas,          l:"Copas entregadas",    c:"",       i:'<svg viewBox="0 0 24 24"><path d="M18 11h-5v5h5v-5zm-6 0H7v5h5v-5zm-6 0H1v5h5v-5zm17-5H0v2h24V6zM9 1v2H6V1H4v2H2v2h20V3h-2V1h-2v2h-3V1H9z"/></svg>'},
+    {v:k.sinReporte,          l:"PDVs sin reporte hoy",c:k.sinReporte>0?"kc-danger":"kc-grn",i:'<svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>'},
+    {v:k.totalAlertas,        l:"Alertas totales",     c:k.totalAlertas>0?"kc-danger":"kc-grn",i:'<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>'},
+    {v:k.totalCuchEnt,        l:"Cucharones entregados",c:"kc-grn",i:'<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>'},
+  ];
+  document.getElementById("kgrid").innerHTML=items.map(function(it){
+    return'<div class="kcard '+it.c+'"><div class="k-ico">'+it.i+'</div><div class="k-val">'+it.v+'</div><div class="k-lbl">'+it.l+'</div></div>';
+  }).join("");
+}
+
+// ── Ticker: solo muestra alertas PDV SIN_REPORTE ──
+function rTicker(arr){
+  var crit=arr.filter(function(a){return a.tipo==="SIN_REPORTE"||a.tipo==="SIN_ENTRADA";});
+  var el=document.getElementById("ticker");
+  if(!crit.length){el.classList.remove("on");return;}
+  document.getElementById("tkCnt").textContent=crit.length;
+  var txt=crit.map(function(a){
+    return'<b>'+esc(a.tipo.replace(/_/g," "))+'</b>: <em>PDV '+esc(a.pdv)+'</em> · '+esc(a.nombre)+' · '+fmtD(a.fecha);
+  }).join('<span style="margin:0 16px;opacity:.2">|</span>');
+  document.getElementById("tkSc").innerHTML='<span>'+txt+'</span><span style="margin:0 20px;opacity:.15">—</span><span>'+txt+'</span>';
+  el.classList.add("on");
+}
+
+// ── Trend Chart ──
+function rTrend(trend,cumpl){
+  var svgEl=document.getElementById("svgT"),tip=document.getElementById("tipT");
+  var t2=trend&&trend.length?trend:[];
+  var c2=cumpl&&cumpl.length?cumpl:[];
+  var mp={};
+  t2.forEach(function(d){mp[d.fecha]=mp[d.fecha]||{f:d.fecha,ventas:0,ingresos:0,reportes:0};mp[d.fecha].ventas=d.ventas;});
+  c2.forEach(function(d){mp[d.fecha]=mp[d.fecha]||{f:d.fecha,ventas:0,ingresos:0,reportes:0};mp[d.fecha].ingresos=d.entradas;mp[d.fecha].reportes=d.reportes;});
+  var data=Object.values(mp).sort(function(a,b){return a.f>b.f?1:-1;});
+  var defs='<defs><linearGradient id="ag1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#E8405A" stop-opacity=".25"/><stop offset="100%" stop-color="#E8405A" stop-opacity="0"/></linearGradient><linearGradient id="ag2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FF7088" stop-opacity=".15"/><stop offset="100%" stop-color="#FF7088" stop-opacity="0"/></linearGradient><linearGradient id="ag3" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4AA8FF" stop-opacity=".1"/><stop offset="100%" stop-color="#4AA8FF" stop-opacity="0"/></linearGradient></defs>';
+  if(!data.length){svgEl.innerHTML=defs+'<text x="350" y="65" text-anchor="middle" style="font-size:11px;fill:#4A5270;font-family:Outfit,sans-serif">Sin datos en el periodo</text>';return;}
+  var totV=data.reduce(function(s,d){return s+d.ventas;},0);
+  document.getElementById("trendPb").textContent=data.length+" días";
+  document.getElementById("trendBg").textContent=totV+" und vendidas";
+  var W=700,H=110,PL=32,PR=10,PT=10,PB=22,cW=W-PL-PR,cH=H-PT-PB;
+  var all=[];data.forEach(function(d){all.push(d.ventas,d.ingresos,d.reportes);});
+  var mx=Math.max.apply(null,all.concat([1]));
+  var n=data.length,xs=n>1?cW/(n-1):cW;
+  var pts=data.map(function(d,i){return{x:PL+i*xs,yV:PT+cH-(d.ventas/mx)*cH,yI:PT+cH-(d.ingresos/mx)*cH,yR:PT+cH-(d.reportes/mx)*cH,ventas:d.ventas,ingresos:d.ingresos,reportes:d.reportes,f:d.f};});
+  var g="",pV="",pI="",pR="",aV="",aI="",aR="",dots="",xl="";
+  [0,.25,.5,.75,1].forEach(function(f){
+    var y=PT+cH-f*cH,val=Math.round(f*mx);
+    g+='<line stroke="rgba(255,255,255,.04)" stroke-width="1" x1="'+PL+'" y1="'+y+'" x2="'+(W-PR)+'" y2="'+y+'"/><text style="font-size:9px;fill:#4A5270;font-family:Outfit,sans-serif" x="'+(PL-3)+'" y="'+(y+3)+'" text-anchor="end">'+val+'</text>';
+  });
+  pts.forEach(function(p,i){pV+=(i===0?"M":"L")+p.x+","+p.yV+" ";pI+=(i===0?"M":"L")+p.x+","+p.yI+" ";pR+=(i===0?"M":"L")+p.x+","+p.yR+" ";});
+  var bot="L"+(PL+(n-1)*xs)+","+(PT+cH)+" L"+PL+","+(PT+cH)+" Z";
+  aV=pV+bot;aI=pI+bot;aR=pR+bot;
+  var step=Math.ceil(n/8);
+  pts.forEach(function(p,i){
+    if(i%step===0){var dd=new Date(p.f+"T12:00:00");xl+='<text style="font-size:9px;fill:#4A5270;font-family:Outfit,sans-serif" x="'+p.x+'" y="'+(H-5)+'" text-anchor="middle">'+dd.toLocaleDateString("es-CO",{day:"2-digit",month:"short"})+'</text>';}
+    dots+='<circle cx="'+p.x+'" cy="'+p.yV+'" r="3.5" fill="#E8405A" stroke="#080B14" stroke-width="2" style="cursor:pointer" data-i="'+i+'"/>';
+    dots+='<circle cx="'+p.x+'" cy="'+p.yI+'" r="3" fill="#FF7088" stroke="#080B14" stroke-width="1.5" style="cursor:pointer" data-i="'+i+'"/>';
+    dots+='<circle cx="'+p.x+'" cy="'+p.yR+'" r="2" fill="#4AA8FF" stroke="#080B14" stroke-width="1" style="cursor:pointer" data-i="'+i+'"/>';
+  });
+  svgEl.innerHTML=defs+g+'<path fill="url(#ag1)" d="'+aV+'"/><path fill="url(#ag2)" d="'+aI+'"/><path fill="url(#ag3)" d="'+aR+'"/><path fill="none" stroke="#E8405A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="'+pV+'"/><path fill="none" stroke="#FF7088" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="'+pI+'"/><path fill="none" stroke="#4AA8FF" stroke-width="1.5" stroke-dasharray="4,3" stroke-linecap="round" stroke-linejoin="round" d="'+pR+'"/>'+dots+xl;
+  svgEl._pts=pts;
+  svgEl.onmousemove=function(e){
+    var i=parseInt(e.target.getAttribute("data-i"));if(isNaN(i)||!svgEl._pts)return;
+    var p=svgEl._pts[i],dd=new Date(p.f+"T12:00:00");
+    tip.innerHTML='<b>'+dd.toLocaleDateString("es-CO",{weekday:"short",day:"2-digit",month:"short"})+'</b><div class="tip-r"><div class="tip-d" style="background:#E8405A"></div>Ventas: <span style="color:var(--ruby);font-weight:700;margin-left:4px">'+p.ventas+'</span></div><div class="tip-r"><div class="tip-d" style="background:#FF7088"></div>Ingresos: <span style="color:var(--rose);font-weight:700;margin-left:4px">'+p.ingresos+'</span></div><div class="tip-r"><div class="tip-d" style="background:#4AA8FF"></div>Reportes: <span style="color:var(--sky);font-weight:700;margin-left:4px">'+p.reportes+'</span></div>';
+    var r=svgEl.getBoundingClientRect(),lx=e.clientX-r.left,ly=e.clientY-r.top;
+    tip.style.left=(lx>r.width/2?lx-190:lx+14)+"px";tip.style.top=(ly-80)+"px";tip.style.opacity="1";
+  };
+  svgEl.onmouseleave=function(){tip.style.opacity="0";};
+}
+
+// ── Cumplimiento ──
+function rCumpl(data){
+  var el=document.getElementById("cmplR");
+  if(!data||!data.length){el.innerHTML='<p style="padding:12px 16px;font-size:.7rem;color:var(--txt3)">Sin datos</p>';return;}
+  var avg=Math.round(data.reduce(function(s,d){return s+d.pct;},0)/data.length);
+  document.getElementById("cmplPb").textContent="Prom "+avg+"%";
+  el.innerHTML=data.map(function(d){
+    var cls=d.pct>=90?"full":d.pct===0?"zero":"";
+    var bc=d.pct>=90?"var(--grn)":d.pct>=50?"var(--ruby)":"var(--txt3)";
+    var dt=new Date(d.fecha+"T12:00:00");
+    return'<div class="cmpl-c" title="'+d.reportes+' rep / '+d.entradas+' ing"><div class="cmpl-pct '+cls+'">'+d.pct+'%</div><div class="cmpl-date">'+dt.toLocaleDateString("es-CO",{day:"2-digit",month:"short"})+'</div><div class="cmpl-bar-wrap"><div class="cmpl-bar" style="width:'+d.pct+'%;background:'+bc+'"></div></div></div>';
+  }).join("");
+}
+
+// ── SKU Table ──
+function rSKU(arr){
+  document.getElementById("skuBg").textContent=arr.length+" SKUs";
+  document.getElementById("skuPb").textContent=arr.length+" productos";
+  var lc=null,h="";
+  arr.forEach(function(s){
+    if(s.cat!==lc){
+      var cc="sku-cat";
+      if(s.cat==="Vitad")cc+=" sku-cat-vitad";
+      else if(s.cat==="Del Vecchio")cc+=" sku-cat-vecchio";
+      h+='<tr><td colspan="4" class="'+cc+'">'+esc(s.cat)+'</td></tr>';
+      lc=s.cat;
+    }
+    var p=s.ini>0?Math.round(s.vta/s.ini*100):0;
+    h+='<tr><td style="font-weight:600;color:var(--txt)">'+esc(s.label)+'</td><td><span class="chip chip-n">'+s.ini+'</span></td><td><span class="chip chip-r">'+s.vta+'</span></td><td><div class="rot-bar"><div class="rot-track"><div class="rot-fill" style="width:'+p+'%"></div></div><div class="rot-pct">'+p+'%</div></div></td></tr>';
+  });
+  document.getElementById("skuBody").innerHTML=h;
+}
+
+// ── Ciudad Bars ──
+function rCiudad(arr){
+  var el=document.getElementById("ciudChart");
+  if(!arr||!arr.length){el.innerHTML='<div class="empty"><p>Sin datos</p></div>';return;}
+  var mx=Math.max.apply(null,arr.map(function(c){return c.ventas;}))||1;
+  el.innerHTML=arr.slice(0,8).map(function(c){
+    var w=Math.round(c.ventas/mx*100);
+    return'<div class="hbar"><div class="hbar-label" title="'+esc(c.ciudad)+'">'+esc(c.ciudad)+'</div><div class="hbar-track"><div class="hbar-fill" style="width:'+w+'%">'+(c.ventas>0?'<span>'+c.ventas+'</span>':"")+'</div></div><div class="hbar-ref">'+c.personas+'p</div></div>';
+  }).join("");
+}
+
+// ── Personas ──
+function rPersonas(personas,hl){
+  document.getElementById("perCnt").textContent=personas.length;
+  var area=document.getElementById("perArea");
+  if(!personas.length){area.innerHTML='<div class="empty"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg><p>Sin asesores en este período</p></div>';return;}
+  var mx=Math.max.apply(null,personas.map(function(p){return p.totalVentas;}))||1;
+  area.innerHTML=personas.map(function(p,idx){
+    var ahA=hl.filter(function(h){return h.nombre===p.nombre&&h.horas;}),
+        avg=ahA.length?Math.round(ahA.reduce(function(s,h){return s+h.horas;},0)/ahA.length*10)/10:0;
+    return'<div class="pcard" id="pw'+idx+'">'+
+      '<div class="ph2" onclick="tgPe('+idx+',\''+encodeURIComponent(p.nombre)+'\')">'+
+      '<div class="p-av"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>'+
+      '<div class="p-inf"><div class="p-nm">'+esc(p.nombre)+'</div><div class="p-loc">'+esc(p.ciudad)+' · '+esc(p.pdv)+'</div></div>'+
+      '<div class="p-stats">'+
+      '<div class="pst"><div class="pst-v">'+p.registros+'</div><div class="pst-l">Rep</div></div>'+
+      '<div class="pst"><div class="pst-v">'+p.totalVentas+'</div><div class="pst-l">Vtas</div></div>'+
+      '<div class="pst"><div class="pst-v">'+(p.totalMugs||0)+'</div><div class="pst-l">MUGs</div></div>'+
+      '<div class="pst"><div class="pst-v">'+(p.totalRedenciones||0)+'</div><div class="pst-l">Rdc.</div></div>'+
+      '<div class="pst"><div class="pst-v">'+(avg>0?avg+'h':'—')+'</div><div class="pst-l">Prom</div></div>'+
+      '</div>'+
+      '<div class="pcaret"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></div>'+
+      '</div>'+
+      '<div class="pbody" id="pe'+idx+'"></div>'+
+      '</div>';
+  }).join("");
+}
+
+function tgPe(idx,enc){
+  var nombre=decodeURIComponent(enc);
+  var pw=document.getElementById("pw"+idx),el=document.getElementById("pe"+idx);
+  if(!pw||!el)return;
+  if(pw.classList.contains("open")){pw.classList.remove("open");openPe=null;return;}
+  if(openPe!==null&&openPe!==idx){var op=document.getElementById("pw"+openPe);if(op)op.classList.remove("open");}
+  openPe=idx;
+  if(!DATA)return;
+  var regs=DATA.gDetail.filter(function(g){return g.nombre===nombre;}),
+      hls=DATA.horasLaboradas.filter(function(h){return h.nombre===nombre;}),
+      alrts=DATA.alertasGlobales.filter(function(a){return a.nombre===nombre;}),
+      per=DATA.personas.find(function(p){return p.nombre===nombre;})||{};
+  var sm={};
+  regs.forEach(function(r){r.skus.forEach(function(s){if(!sm[s.key])sm[s.key]={label:s.label,ini:0,vta:0};sm[s.key].ini+=s.ini;sm[s.key].vta+=s.vta;});});
+  var tv=Object.values(sm).reduce(function(s,v){return s+v.vta;},0);
+  var ahA=hls.filter(function(h){return h.horas;}),
+      avg=ahA.length?Math.round(ahA.reduce(function(s,h){return s+h.horas;},0)/ahA.length*10)/10:0;
+  var gps=regs.filter(function(r){return r.lat&&r.lng;}),
+      lps=(DATA.lDetail||[]).filter(function(l){return l.nombre===nombre&&l.lat&&l.lng;}),
+      allGps=[].concat(gps,lps);
+
+  var h='<div class="pe-kpis">'+
+    '<div class="pek"><div class="pek-v">'+(per.registros||0)+'</div><div class="pek-l">Reportes</div></div>'+
+    '<div class="pek"><div class="pek-v">'+tv+'</div><div class="pek-l">Ventas</div></div>'+
+    '<div class="pek"><div class="pek-v">'+(per.totalRedenciones||0)+'</div><div class="pek-l">Redenc.</div></div>'+
+    '<div class="pek"><div class="pek-v">'+(per.totalMugs||0)+'</div><div class="pek-l">MUGs</div></div>'+
+    '<div class="pek"><div class="pek-v">'+(avg>0?avg+'h':'—')+'</div><div class="pek-l">Prom hrs</div></div>'+
+    '</div>';
+
+  // Tiempos
+  h+='<div class="pe-st"><div class="pe-stitle"><svg viewBox="0 0 24 24"><path d="M12 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>Tiempos laborados</div>'+
+    hls.slice(0,5).map(function(hl){return'<div class="pe-row"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg><span><strong>'+fmtD(hl.fecha)+'</strong> — '+fmtT(hl.entradaISO)+' → '+fmtT(hl.salidaISO)+' · <strong>'+hl.horasLabel+'</strong></span></div>';}).join('')+'</div>';
+
+  // SKUs
+  var sk=Object.values(sm).filter(function(s){return s.ini>0||s.vta>0;}).map(function(s){return'<div class="pe-sku"><div class="pe-sn">'+esc(s.label)+'</div><div class="pe-sv">'+s.ini+' → <span>'+s.vta+'</span></div></div>';}).join('');
+  h+='<div class="pe-st"><div class="pe-stitle"><svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.07-.44.18-.88.18-1.34C18 3.17 16.83 2 15.34 2c-.78 0-1.49.35-2.01.88L12 4.2l-1.33-1.32A2.6 2.6 0 008.66 2C7.17 2 6 3.17 6 4.66c0 .46.11.9.28 1.34H4c-1.11 0-2 .89-2 2v1c0 .55.45 1 1 1h18c.55 0 1-.45 1-1V8c0-1.11-.89-2-2-2z"/></svg>SKUs</div><div class="pe-skus">'+(sk||'<p style="font-size:.7rem;color:var(--txt3);grid-column:span 3">Sin SKUs</p>')+'</div></div>';
+
+  // Alertas
+  if(alrts.length) h+='<div class="pe-st"><div class="pe-stitle"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>Alertas ('+alrts.length+')</div><div class="pe-alerts">'+alrts.slice(0,5).map(function(a){return'<div class="pe-alert"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg><span>'+esc(a.msg)+'</span></div>';}).join('')+'</div></div>';
+
+  // GPS
+  if(allGps.length) h+='<div class="pe-st"><div class="pe-stitle"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>GPS ('+allGps.length+')</div><div class="map-sm" id="pemap'+idx+'"></div></div>';
+
+  el.innerHTML=h; pw.classList.add("open");
+  setTimeout(function(){
+    pw.scrollIntoView({behavior:"smooth",block:"nearest"});
+    if(allGps.length&&window.L){
+      var pmEl=document.getElementById("pemap"+idx);
+      if(pmEl&&!pmEl._lmap){
+        var pm=L.map(pmEl,{zoomControl:true,attributionControl:false}).setView([allGps[0].lat,allGps[0].lng],13);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19}).addTo(pm);
+        allGps.forEach(function(p){
+          var col=gps.indexOf(p)>-1?"#E8405A":"#4AA8FF";
+          var ic=L.divIcon({html:'<div style="width:12px;height:12px;border-radius:50%;background:'+col+';border:2.5px solid #080B14;box-shadow:0 2px 8px rgba(0,0,0,.6)"></div>',className:"",iconSize:[12,12],iconAnchor:[6,6]});
+          L.marker([p.lat,p.lng],{icon:ic}).bindPopup('<strong>'+esc(p.nombre||"")+'</strong><br>'+esc(p.pdv||p.ciudad||"")).addTo(pm);
+        });
+        pmEl._lmap=pm; setTimeout(function(){pm.invalidateSize();},200);
+      }
+    }
+  },150);
+}
+
+// ── Tiempos ──
+function rHL(arr){
+  document.getElementById("hlCnt").textContent=arr.length;
+  if(!arr.length){document.getElementById("hlBody").innerHTML='<tr><td colspan="8"><div class="empty"><p>Sin datos</p></div></td></tr>';return;}
+  var cm={SIN_ENTRADA:"chip-w",SIN_REPORTE:"chip-w",JORNADA_LARGA:"chip-a",JORNADA_CORTA:"chip-s",SIN_VENTAS:"chip-n",SIN_OBS:"chip-n"};
+  document.getElementById("hlBody").innerHTML=arr.map(function(h){
+    var chips=h.alertas.map(function(a){return'<span class="chip '+(cm[a.tipo]||"chip-n")+'">'+a.tipo.replace(/_/g," ")+'</span>';}).join(" ");
+    if(!h.alertas.length)chips='<span class="chip chip-ok">OK</span>';
+    return'<tr><td style="font-weight:700;color:var(--txt)">'+esc(h.nombre)+'</td><td>'+esc(h.ciudad)+'</td><td style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(h.pdv)+'">'+esc(h.pdv)+'</td><td style="color:var(--ruby);font-weight:600;white-space:nowrap">'+fmtD(h.fecha)+'</td><td style="font-family:\'JetBrains Mono\',monospace">'+fmtT(h.entradaISO||h.entISO)+'</td><td style="font-family:\'JetBrains Mono\',monospace">'+fmtT(h.salidaISO||h.salISO)+'</td><td style="font-family:\'JetBrains Mono\',monospace;font-weight:600;color:var(--txt)">'+h.horasLabel+'</td><td>'+chips+'</td></tr>';
+  }).join("");
+}
+
+// ── Degustaciones ──
+function rDeg(gDet){
+  var degMap={};
+  gDet.forEach(function(g){
+    if(!g.degustaciones||!g.degustaciones.trim())return;
+    g.degustaciones.split(',').forEach(function(d){
+      var k=d.trim();if(!k)return;
+      degMap[k]=(degMap[k]||0)+1;
+    });
+  });
+  var total=Object.keys(degMap).length;
+  document.getElementById("degCnt").textContent=total+" productos";
+  document.getElementById("degPb").textContent=total+" refs";
+
+  var h='<div style="display:flex;flex-wrap:wrap;gap:5px;padding:4px 0">';
+  if(total){
+    Object.entries(degMap).sort(function(a,b){return b[1]-a[1];}).slice(0,12).forEach(function(e){
+      h+='<span class="deg-chip">'+esc(e[0])+' <span style="background:var(--ruby);color:#fff;border-radius:8px;padding:0 4px;margin-left:2px;font-size:.55rem">'+e[1]+'</span></span>';
+    });
+  } else {
+    h+='<p style="font-size:.7rem;color:var(--txt3)">Sin registros de degustaciones</p>';
+  }
+  h+='</div>';
+  document.getElementById("degResumen").innerHTML=h;
+
+  var bocRegs=gDet.filter(function(g){return g.deg_bocadillo&&g.deg_bocadillo.trim();});
+  var bocH='';
+  if(bocRegs.length){
+    bocH=bocRegs.slice(0,6).map(function(g){
+      return'<div class="deg-box">'+
+        '<div class="deg-title">'+fmtD(g.fecha)+' · <span style="color:var(--txt2)">'+esc(g.nombre)+'</span></div>'+
+        '<div class="deg-cnt">'+esc(g.deg_bocadillo)+'</div>'+
+        '</div>';
+    }).join('');
+    if(bocRegs.length>6)bocH+='<p style="font-size:.6rem;color:var(--txt3);text-align:center">... y '+(bocRegs.length-6)+' más</p>';
+  } else {
+    bocH='<p style="font-size:.7rem;color:var(--txt3);text-align:center;padding:12px">Sin registros de bocadillo</p>';
+  }
+  document.getElementById("bocResumen").innerHTML=bocH;
+}
+
+// ── Alertas ──
+function rAlertas(arr){
+  document.getElementById("alrtBg").textContent=arr.length||"0";
+  document.getElementById("alrtCnt").textContent=arr.length||"0";
+  document.getElementById("sbA").textContent=arr.length||"0";
+  if(!arr.length){document.getElementById("alrtList").innerHTML='<div class="empty"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg><p>Sin alertas activas</p></div>';return;}
+  // SIN_REPORTE primero
+  var sorted=arr.slice().sort(function(a,b){
+    var p={SIN_REPORTE:0,SIN_ENTRADA:1,JORNADA_LARGA:2,JORNADA_CORTA:3,SIN_VENTAS:4,SIN_OBS:5};
+    return(p[a.tipo]||9)-(p[b.tipo]||9);
+  });
+  document.getElementById("alrtList").innerHTML=sorted.map(function(a){
+    return'<div class="alert-row"><div class="a-dot dot-'+a.tipo+'"></div><div class="a-txt"><strong>'+esc(a.pdv||a.nombre)+'</strong> — '+esc(a.msg||a.label)+'</div><div class="a-meta">'+esc(a.nombre)+'<br>'+fmtD(a.fecha)+'</div></div>';
+  }).join("");
+}
+
+// ── GPS ──
+function rGPS(gD,lD){
+  var gM=(gD||[]).map(function(r){return Object.assign({},r,{_src:"G"});});
+  var lM=(lD||[]).map(function(r){return Object.assign({},r,{_src:"L"});});
+  var all=[].concat(gM,lM).filter(function(r){return r.lat&&r.lng;});
+  document.getElementById("gpsCnt").textContent=all.length+" puntos";
+  var mapEl=document.getElementById("gpsMap");
+  if(window._gmap){try{window._gmap.off();window._gmap.remove();}catch(e){}window._gmap=null;mapEl.innerHTML="";}
+  if(!all.length){mapEl.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--txt3);font-size:.72rem">Sin coordenadas GPS</div>';document.getElementById("cgrid").innerHTML='';return;}
+  setTimeout(function(){
+    if(!window.L){mapEl.innerHTML='<div style="padding:14px;font-size:.7rem;color:var(--txt3)">Leaflet no disponible</div>';return;}
+    var avgLat=all.reduce(function(s,r){return s+r.lat;},0)/all.length;
+    var avgLng=all.reduce(function(s,r){return s+r.lng;},0)/all.length;
+    window._gmap=L.map(mapEl,{zoomControl:true,attributionControl:false}).setView([avgLat,avgLng],12);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19}).addTo(window._gmap);
+    all.forEach(function(r){
+      var col=r._src==="G"?"#E8405A":"#4AA8FF";
+      var ic=L.divIcon({html:'<div style="width:12px;height:12px;border-radius:50%;background:'+col+';border:2.5px solid #080B14;box-shadow:0 2px 8px rgba(0,0,0,.6)"></div>',className:"",iconSize:[12,12],iconAnchor:[6,6]});
+      L.marker([r.lat,r.lng],{icon:ic}).bindPopup('<strong>'+esc(r.nombre||"")+'</strong><br>'+esc(r.pdv||r.ciudad||"")+'<br><small>'+(r._src==="G"?"Gestión":"Check-in")+'</small>').addTo(window._gmap);
+    });
+    setTimeout(function(){if(window._gmap)window._gmap.invalidateSize();},300);
+  },50);
+  document.getElementById("cgrid").innerHTML=all.slice(0,24).map(function(r){
+    var url="https://www.google.com/maps?q="+r.lat+","+r.lng;
+    var badge=r._src==="G"?'<span class="chip chip-r" style="font-size:.48rem">Gestión</span>':'<span class="chip chip-s" style="font-size:.48rem">Check-in</span>';
+    return'<div class="gps-c"><div class="gps-ico"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg></div><div><div class="gps-nm">'+esc(r.nombre||"—")+'</div><div class="gps-ll">'+esc(r.pdv||r.ciudad||"")+'&nbsp;'+badge+'<br><a href="'+url+'" target="_blank">'+r.lat.toFixed(4)+', '+r.lng.toFixed(4)+'</a></div></div></div>';
+  }).join("");
+}
+
+// ── Logs ──
+function rLogs(logs){
+  document.getElementById("logCnt").textContent=logs.length;
+  if(!logs.length){document.getElementById("logBody").innerHTML='<tr><td colspan="7"><div class="empty"><p>Sin registros</p></div></td></tr>';return;}
+  document.getElementById("logBody").innerHTML=logs.map(function(l){
+    var gps="—";
+    if(l.lat&&l.lng){var url="https://www.google.com/maps?q="+l.lat+","+l.lng;gps='<a href="'+url+'" target="_blank" style="color:var(--ruby);font-size:.64rem;font-weight:600;text-decoration:none;white-space:nowrap">📍 '+l.lat.toFixed(4)+','+l.lng.toFixed(4)+'</a>';}
+    return'<tr><td style="color:var(--ruby);font-weight:600;white-space:nowrap;font-size:.67rem">'+fmtD(l.fecha)+'</td><td style="font-weight:600;color:var(--txt)">'+esc(l.nombre)+'</td><td>'+esc(l.ciudad)+'</td><td style="font-size:.65rem">'+esc(l.pdv)+'</td><td style="font-family:\'JetBrains Mono\',monospace">'+fmtT(l.regISO||l.fechaISO)+'</td><td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(l.observacion||"")+'">'+esc(l.observacion||"—")+'</td><td>'+gps+'</td></tr>';
+  }).join("");
+}
+
+// ── Render principal ──
 function renderAll(d){
   DATA=d;
   try{populateF(d.options,d.filters||{});}catch(e){console.error("filters",e);}
+  try{rKPIs(d.kpis);}catch(e){console.error("kpis",e);}
+  try{rTrend(d.trendDays,d.cumplimiento);}catch(e){console.error("trend",e);}
+  try{rCumpl(d.cumplimiento);}catch(e){console.error("cumpl",e);}
+  try{rSKU(d.skuAgg);}catch(e){console.error("sku",e);}
+  try{rCiudad(d.ciudadStats);}catch(e){console.error("ciudad",e);}
+  try{rPersonas(d.personas,d.horasLaboradas);}catch(e){console.error("personas",e);}
+  try{rHL(d.horasLaboradas);}catch(e){console.error("hl",e);}
+  try{rDeg(d.gDetail);}catch(e){console.error("deg",e);}
+  try{rAlertas(d.alertasGlobales);}catch(e){console.error("alertas",e);}
+  try{rGPS(d.gDetail,d.lDetail);}catch(e){console.error("gps",e);}
+  try{rLogs(d.lDetail);}catch(e){console.error("logs",e);}
+  try{rTicker(d.alertasGlobales);}catch(e){console.error("ticker",e);}
+
+  document.getElementById("sbP").textContent=d.personas?d.personas.length:"0";
+  document.getElementById("sbA").textContent=d.alertasGlobales?d.alertasGlobales.length:"0";
+  document.getElementById("tbUpd").textContent="Actualizado "+new Date().toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
   
+  var fl=d.filters,sub="Inventario · Ventas · Control de Tiempos";
+  if(fl&&(fl.fecha||fl.ciudad||fl.pdv||fl.nombre)){
+    var ps=[];if(fl.fecha)ps.push(fmtD(fl.fecha));if(fl.ciudad)ps.push(fl.ciudad);if(fl.pdv)ps.push(fl.pdv);if(fl.nombre)ps.push(fl.nombre);
+    sub="Filtro: "+ps.join(" · ");
+  }
+  document.getElementById("tbsub").textContent=sub;
   document.getElementById("ls").style.display="none";
   document.getElementById("cnt").style.display="block";
-  
-  // Mostrar KPIs básicos
-  if(d.kpis){
-    document.getElementById("kgrid").innerHTML = 
-      '<div class="kcard"><div class="k-ico"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96C5 16.1 6.9 18 9 18h12v-2H9.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63H19c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0023.45 5H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg></div><div class="k-val">'+d.kpis.totalVentas+'</div><div class="k-lbl">Unidades vendidas</div></div>' +
-      '<div class="kcard kc-sky"><div class="k-ico"><svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg></div><div class="k-val">'+d.kpis.rotacionPct+'%</div><div class="k-lbl">Rotación</div></div>' +
-      '<div class="kcard kc-grn"><div class="k-ico"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 3-1.34 3-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5C23 14.17 18.33 13 16 13z"/></svg></div><div class="k-val">'+d.kpis.personasActivas+'</div><div class="k-lbl">Asesores</div></div>' +
-      '<div class="kcard '+(d.kpis.sinReporte>0?"kc-danger":"kc-grn")+'"><div class="k-ico"><svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg></div><div class="k-val">'+d.kpis.sinReporte+'</div><div class="k-lbl">Sin reporte</div></div>' +
-      '<div class="kcard '+(d.kpis.totalAlertas>0?"kc-danger":"kc-grn")+'"><div class="k-ico"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg></div><div class="k-val">'+d.kpis.totalAlertas+'</div><div class="k-lbl">Alertas</div></div>';
-  }
-  
-  // Mostrar contadores en sidebar
-  document.getElementById("sbP").textContent = d.personas ? d.personas.length : "0";
-  document.getElementById("sbA").textContent = d.alertasGlobales ? d.alertasGlobales.length : "0";
-  document.getElementById("tbUpd").textContent = "Actualizado " + new Date().toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
-  
   startRing();
 }
 
